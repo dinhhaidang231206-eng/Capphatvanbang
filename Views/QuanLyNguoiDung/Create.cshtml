@@ -1,0 +1,79 @@
+@{
+    ViewData["Title"] = "Tạo Tài Khoản Mới";
+    var roles = ViewBag.Roles as List<string>;
+    var donViList = ViewBag.DanhSachDonVi as List<HeThongVanBangSo.Models.DonViPhatHanh>;
+}
+
+<div class="row justify-content-center mt-3">
+    <div class="col-md-6">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-primary">Tạo Tài Khoản Mới</h3>
+            <a href="/QuanLyNguoiDung" class="btn btn-outline-secondary btn-sm">← Quay lại</a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                }
+
+                <form method="post" asp-action="Create">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label for="hoTen" class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>
+                        <input type="text" id="hoTen" name="hoTen" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                        <input type="email" id="email" name="email" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label fw-semibold">Mật khẩu <span class="text-danger">*</span></label>
+                        <input type="password" id="password" name="password" class="form-control" required />
+                        <div class="form-text">Tối thiểu 6 ký tự, chứa chữ hoa, chữ thường và chữ số.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="role" class="form-label fw-semibold">Vai Trò <span class="text-danger">*</span></label>
+                        <select id="role" name="role" class="form-select" required>
+                            @if (roles != null)
+                            {
+                                foreach (var r in roles)
+                                {
+                                    string displayName = r switch
+                                    {
+                                        "Admin" => "Admin (Toàn quyền)",
+                                        "NhanVien" => "Nhân Viên (Quản lý VB, Ký duyệt)",
+                                        "ChuVanBang" => "Chủ Văn Bằng (Xin cấp phát)",
+                                        _ => r
+                                    };
+                                    <option value="@r">@displayName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="maDonVi" class="form-label fw-semibold">Đơn Vị (Tùy chọn)</label>
+                        <select id="maDonVi" name="maDonVi" class="form-select">
+                            <option value="">— Không gắn đơn vị —</option>
+                            @if (donViList != null)
+                            {
+                                foreach (var dv in donViList)
+                                {
+                                    <option value="@dv.MaDonVi">@dv.TenDonVi (@dv.MaCode)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-semibold">Tạo Tài Khoản</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

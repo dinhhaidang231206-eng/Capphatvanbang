@@ -1,0 +1,118 @@
+@model IEnumerable<HeThongVanBangSo.Models.YeuCauCapPhat>
+
+@{
+    ViewData["Title"] = "Quản Lý Yêu Cầu Xin Cấp Phát";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+    <h2 class="text-primary">Quản Lý Yêu Cầu Cấp Phát</h2>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Người Yêu Cầu</th>
+                        <th>Số CCCD</th>
+                        <th>Tên Văn Bằng</th>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <th>Đơn Vị Nhận</th>
+                        }
+                        <th>Ngày Yêu Cầu</th>
+                        <th>Trạng Thái</th>
+                        <th class="text-center">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><strong>@item.HoTen</strong><br /><small class="text-muted">NS: @item.NgaySinh.ToString("dd/MM/yyyy")</small></td>
+                                <td>@item.SoCCCD</td>
+                                <td>@item.TenVanBang</td>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <td>@(item.DonViPhatHanh?.TenDonVi ?? "—")</td>
+                                }
+                                <td>@item.NgayYeuCau.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if (item.TrangThai == "CHO_DUYET")
+                                    {
+                                        <span class="badge bg-warning text-dark">Chờ Duyệt</span>
+                                    }
+                                    else if (item.TrangThai == "DA_DUYET")
+                                    {
+                                        <span class="badge bg-success">Đã Duyệt</span>
+                                    }
+                                    else if (item.TrangThai == "TU_CHOI")
+                                    {
+                                        <span class="badge bg-danger">Từ Chối</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (item.TrangThai == "CHO_DUYET")
+                                    {
+                                        <form method="post" action="/YeuCauCapPhat/Duyet/@item.MaYeuCau" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-success" title="Duyệt và Cấp Phát">✅ Duyệt</button>
+                                        </form>
+                                        
+                                        <button type="button" class="btn btn-sm btn-danger ms-1" data-bs-toggle="modal" data-bs-target="#rejectModal-@item.MaYeuCau" title="Từ chối">
+                                            ❌
+                                        </button>
+
+                                        <!-- Reject Modal -->
+                                        <div class="modal fade" id="rejectModal-@item.MaYeuCau" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <form method="post" action="/YeuCauCapPhat/TuChoi/@item.MaYeuCau">
+                                                    @Html.AntiForgeryToken()
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-danger text-white">
+                                                            <h5 class="modal-title">Từ Chối Yêu Cầu</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body text-start">
+                                                            <p>Vui lòng nhập lý do từ chối cấp bằng cho <strong>@item.HoTen</strong>:</p>
+                                                            <textarea name="lyDoTuChoi" class="form-control" rows="3" required></textarea>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                            <button type="submit" class="btn btn-danger">Xác Nhận Từ Chối</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Không có yêu cầu cấp phát nào.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

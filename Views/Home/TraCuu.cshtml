@@ -42,22 +42,31 @@
             </div>
         </div>
 
-        <!-- Cách 2: Nhập mã băm -->
+        <!-- Cách 2: Nhập Thông Tin -->
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">Cách 2: Nhập mã băm SHA-256</h5>
+                    <h5 class="mb-0">Cách 2: Tra cứu theo thông tin cá nhân</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">Nếu bạn đã có sẵn chuỗi mã băm SHA-256 (64 ký tự hex), nhập trực tiếp để tra cứu nhanh.</p>
-                    <form asp-action="TraCuuByHash" asp-controller="Home" method="post">
+                    <p class="text-muted">Nhập thông tin cá nhân để kiểm tra các văn bằng đã được cấp phát cho bạn.</p>
+                    <form asp-action="TraCuuByThongTin" asp-controller="Home" method="post">
                         @Html.AntiForgeryToken()
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Mã băm SHA-256:</label>
-                            <input type="text" name="maBamSHA256" class="form-control font-monospace" maxlength="64" pattern="[0-9a-fA-F]{64}" placeholder="VD: e3b0c44298fc1c149afbf4c8996fb924..." required />
-                            <small class="text-muted">Đúng 64 ký tự hex (0-9, a-f).</small>
+                            <label class="form-label fw-semibold">Họ và Tên:</label>
+                            <input type="text" name="hoTen" class="form-control" placeholder="Nguyễn Văn A" required />
                         </div>
-                        <button type="submit" class="btn btn-dark w-100">Tra Cứu Theo Mã Băm</button>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Số CCCD:</label>
+                                <input type="text" name="soCCCD" class="form-control" placeholder="Số Căn cước công dân" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Ngày Sinh:</label>
+                                <input type="date" name="ngaySinh" class="form-control" required />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100">Tra Cứu Văn Bằng</button>
                     </form>
                 </div>
             </div>
@@ -104,7 +113,60 @@
                 </div>
             </div>
 
-            @if (vanBang != null)
+            @if (ViewBag.DanhSachVanBang != null)
+            {
+                var danhSach = ViewBag.DanhSachVanBang as List<HeThongVanBangSo.Models.VanBangChungChi>;
+                if (danhSach != null && danhSach.Any())
+                {
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Danh Sách Văn Bằng Tìm Thấy</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Người Nhận</th>
+                                            <th>Số Hiệu</th>
+                                            <th>Tên Văn Bằng</th>
+                                            <th>Đơn Vị Cấp</th>
+                                            <th>Ngày Cấp</th>
+                                            <th>Trạng Thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var vb in danhSach)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@vb.NguoiNhan?.HoTen</strong><br/>
+                                                    <small class="text-muted">CCCD: @vb.NguoiNhan?.SoCCCD</small>
+                                                </td>
+                                                <td><strong class="text-primary">@vb.SoHieu</strong></td>
+                                                <td>@vb.TenVanBang</td>
+                                                <td>@vb.DonViPhatHanh?.TenDonVi</td>
+                                                <td>@vb.NgayCap.ToString("dd/MM/yyyy")</td>
+                                                <td>
+                                                    @if (vb.TrangThai == "HOP_LE")
+                                                    {
+                                                        <span class="badge bg-success">Hợp lệ</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-danger">Đã thu hồi</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else if (vanBang != null)
             {
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-info text-white">

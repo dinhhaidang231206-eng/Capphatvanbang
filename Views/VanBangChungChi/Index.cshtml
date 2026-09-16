@@ -39,24 +39,40 @@
                                 <td>@item.DonViPhatHanh?.TenDonVi</td>
                                 <td>@item.NgayCap.ToString("dd/MM/yyyy")</td>
                                 <td>
-                                    @if (item.TrangThai == "HOP_LE")
+                                    @if (item.TrangThaiDuyet == HeThongVanBangSo.Models.TrangThaiPhanLuong.DuThao)
                                     {
-                                        <span class="badge bg-success">Hợp lệ</span>
+                                        <span class="badge bg-warning text-dark">Dự thảo</span>
                                     }
-                                    else if (item.TrangThai == "THU_HOI")
+                                    else if (item.TrangThaiDuyet == HeThongVanBangSo.Models.TrangThaiPhanLuong.DaBanHanh)
                                     {
-                                        <span class="badge bg-danger">Đã thu hồi</span>
+                                        if (item.TrangThai == "HOP_LE")
+                                        {
+                                            <span class="badge bg-success">Đã ban hành</span>
+                                        }
+                                        else if (item.TrangThai == "THU_HOI" || item.TrangThaiDuyet == HeThongVanBangSo.Models.TrangThaiPhanLuong.ThuHoi)
+                                        {
+                                            <span class="badge bg-danger">Đã thu hồi</span>
+                                        }
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">@item.TrangThai</span>
+                                        <span class="badge bg-secondary">@item.TrangThaiDuyet.ToString()</span>
                                     }
                                 </td>
                                 <td class="btn-actions">
                                     <a href="/VanBangChungChi/Details/@item.MaVanBang" class="btn btn-sm btn-outline-info">Chi tiết</a>
-                                    @if (!string.IsNullOrEmpty(item.DuongDanFileDaKy))
+                                    
+                                    @if (item.TrangThaiDuyet == HeThongVanBangSo.Models.TrangThaiPhanLuong.DuThao)
                                     {
-                                        <a href="@item.DuongDanFileDaKy" target="_blank" class="btn btn-sm btn-outline-secondary">File</a>
+                                        <form action="/VanBangChungChi/ApproveAndSign/@item.MaVanBang" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn phê duyệt và ký số điện tử cho văn bằng này?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-primary">Ký duyệt</button>
+                                        </form>
+                                        <a href="@item.FilePath_Draft" target="_blank" class="btn btn-sm btn-outline-secondary">Xem Nháp</a>
+                                    }
+                                    else if (item.TrangThaiDuyet == HeThongVanBangSo.Models.TrangThaiPhanLuong.DaBanHanh && !string.IsNullOrEmpty(item.FilePath_Signed))
+                                    {
+                                        <a href="@item.FilePath_Signed" target="_blank" class="btn btn-sm btn-outline-success">File Đã Ký</a>
                                     }
                                 </td>
                             </tr>

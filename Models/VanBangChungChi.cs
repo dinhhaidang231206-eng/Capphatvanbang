@@ -45,6 +45,14 @@ namespace HeThongVanBangSo.Models
         [MaxLength(20)]
         public string TrangThai { get; set; } = "HOP_LE";
 
+        public TrangThaiPhanLuong TrangThaiDuyet { get; set; } = TrangThaiPhanLuong.DuThao;
+
+        [MaxLength(500)]
+        public string FilePath_Draft { get; set; } = string.Empty;
+
+        [MaxLength(500)]
+        public string FilePath_Signed { get; set; } = string.Empty;
+
         public DateTime NgayTao { get; set; } = DateTime.UtcNow;
 
         [ForeignKey("MaDonVi")]

@@ -1,0 +1,84 @@
+@model IEnumerable<HeThongVanBangSo.Models.NguoiDung>
+
+@{
+    ViewData["Title"] = "Quản lý Người Dùng";
+    var userRoles = ViewBag.UserRoles as Dictionary<string, IList<string>>;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+    <h2 class="text-primary">Quản Lý Tài Khoản Người Dùng</h2>
+    <a href="/QuanLyNguoiDung/Create" class="btn btn-success">+ Tạo Tài Khoản Mới</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Họ Tên</th>
+                        <th>Email</th>
+                        <th>Vai Trò</th>
+                        <th>Đơn Vị</th>
+                        <th>Ngày Tạo</th>
+                        <th>Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var user in Model)
+                        {
+                            var roles = userRoles?.ContainsKey(user.Id) == true ? userRoles[user.Id] : new List<string>();
+                            string roleName = roles.FirstOrDefault() ?? "Chưa gán";
+
+                            <tr>
+                                <td><strong>@user.HoTen</strong></td>
+                                <td>@user.Email</td>
+                                <td>
+                                    @if (roleName == "Admin")
+                                    {
+                                        <span class="badge bg-danger">Admin</span>
+                                    }
+                                    else if (roleName == "NhanVien")
+                                    {
+                                        <span class="badge bg-primary">Nhân Viên</span>
+                                    }
+                                    else if (roleName == "ChuVanBang")
+                                    {
+                                        <span class="badge bg-success">Chủ Văn Bằng</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@roleName</span>
+                                    }
+                                </td>
+                                <td>@(user.DonViPhatHanh?.TenDonVi ?? "—")</td>
+                                <td>@user.NgayTao.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <a href="/QuanLyNguoiDung/Edit/@user.Id" class="btn btn-sm btn-outline-warning">Sửa</a>
+
+                                    @if (user.UserName != User.Identity?.Name)
+                                    {
+                                        <form action="/QuanLyNguoiDung/Delete/@user.Id" method="post" class="d-inline"
+                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản này?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Chưa có tài khoản nào.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

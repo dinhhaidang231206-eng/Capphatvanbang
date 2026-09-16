@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using HeThongVanBangSo.Data;
 using System.Text.Json;
@@ -9,6 +10,7 @@ namespace HeThongVanBangSo.Controllers.Api
 {
     [ApiController]
     [Route("api/[controller]")]
+    [AllowAnonymous]
     public class KiemTraVanBangController : ControllerBase
     {
         private readonly HeThongVanBangDbContext _context;
@@ -52,7 +54,14 @@ namespace HeThongVanBangSo.Controllers.Api
                 fileBytes = ms.ToArray();
             }
 
-            // 2. Tính toán mã băm SHA-256 từ tệp tin tải lên
+            // Lưu tạm file để iText7 đọc
+            string tempFilePath = Path.GetTempFileName();
+            await System.IO.File.WriteAllBytesAsync(tempFilePath, fileBytes);
+            
+            var verifyResult = _signatureService.VerifyPdfSignature(tempFilePath);
+            System.IO.File.Delete(tempFilePath);
+
+            // 2. Tính toán mã băm SHA-256 từ tệp tin tải lên (để tìm bản ghi trong CSDL)
             string maBamFile = _signatureService.ComputeSha256Hash(fileBytes);
             string tenFile = Path.GetFileName(fileVanBang.FileName);
             string? ipClient = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -71,39 +80,45 @@ namespace HeThongVanBangSo.Controllers.Api
             if (vanBang != null)
             {
                 // Kiểm tra trạng thái hiệu lực
-                if (vanBang.TrangThai == "THU_HOI")
+                if (vanBang.TrangThai == "THU_HOI" || vanBang.TrangThaiDuyet == TrangThaiPhanLuong.ThuHoi)
                 {
                     ketQuaHopLe = false;
                     ghiChu = "CẢNH BÁO: Văn bằng này đã bị đơn vị cấp thu hồi hoặc hủy bỏ hiệu lực.";
                 }
+                else if (vanBang.TrangThaiDuyet != TrangThaiPhanLuong.DaBanHanh)
+                {
+                    ketQuaHopLe = false;
+                    ghiChu = "CẢNH BÁO: Văn bằng này chưa được ban hành chính thức.";
+                }
                 else
                 {
-                    // Xác thực lại chữ ký số bằng Public Key của đơn vị
-                    if (vanBang.KhoaKySo != null && !string.IsNullOrEmpty(vanBang.KhoaKySo.PublicKeyText))
-                    {
-                        chuKySoHopLe = _signatureService.VerifySignature(
-                            fileBytes,
-                            vanBang.ChuKySo,
-                            vanBang.KhoaKySo.PublicKeyText
-                        );
-                    }
+                    // Xác thực lại chữ ký số bằng iText7 (nhúng trong file)
+                    chuKySoHopLe = verifyResult.IsValid;
 
                     if (chuKySoHopLe)
                     {
                         ketQuaHopLe = true;
-                        ghiChu = "CHÍNH XÁC: Văn bằng hợp lệ, toàn vẹn dữ liệu và chữ ký số chính chủ.";
+                        ghiChu = "CHÍNH XÁC: Văn bằng hợp lệ, toàn vẹn dữ liệu và có chữ ký số. Người ký: " + verifyResult.SignerName;
                     }
                     else
                     {
                         ketQuaHopLe = false;
-                        ghiChu = "CẢNH BÁO: Mã băm trùng khớp nhưng chữ ký số không hợp lệ hoặc đã bị can thiệp.";
+                        ghiChu = "CẢNH BÁO: " + verifyResult.Message;
                     }
                 }
             }
             else
             {
+                // Trường hợp mã băm không khớp, nhưng ta vẫn báo lỗi chữ ký nếu có
                 ketQuaHopLe = false;
-                ghiChu = "CẢNH BÁO: Tệp tin không tồn tại trong hệ thống hoặc nội dung văn bằng đã bị chỉnh sửa, làm giả.";
+                if (!verifyResult.IsValid)
+                {
+                    ghiChu = "CẢNH BÁO: Tệp tin không có chữ ký số hợp lệ hoặc đã bị sửa đổi. " + verifyResult.Message;
+                }
+                else
+                {
+                    ghiChu = "CẢNH BÁO: Tệp tin có chữ ký nhưng không tồn tại trong hệ thống (hoặc mã băm không khớp).";
+                }
             }
 
             // 4. Lưu lịch sử vào bảng LichSuKiemTra

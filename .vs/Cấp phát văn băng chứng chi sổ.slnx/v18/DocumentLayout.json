@@ -46,12 +46,11 @@
               "Title": "README.md",
               "DocumentMoniker": "C:\\Users\\FPTShop\\OneDrive\\File h\u1ECDc\\L\u00E0m b\u00E0i\\C\u1EA5p ph\u00E1t v\u0103n b\u0103ng ch\u1EE9ng chi s\u1ED5\\README.md",
               "RelativeDocumentMoniker": "README.md",
-              "ToolTip": "C:\\Users\\FPTShop\\OneDrive\\File h\u1ECDc\\L\u00E0m b\u00E0i\\C\u1EA5p ph\u00E1t v\u0103n b\u0103ng ch\u1EE9ng chi s\u1ED5\\README.md*",
-              "RelativeToolTip": "README.md*",
+              "ToolTip": "C:\\Users\\FPTShop\\OneDrive\\File h\u1ECDc\\L\u00E0m b\u00E0i\\C\u1EA5p ph\u00E1t v\u0103n b\u0103ng ch\u1EE9ng chi s\u1ED5\\README.md",
+              "RelativeToolTip": "README.md",
               "ViewState": "AgIAAGAAAAAAAAAAAAAAAHAAAAA9AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-09-09T08:12:15.218Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-09T08:12:15.218Z"
             },
             {
               "$type": "Bookmark",
@@ -67,8 +66,7 @@
               "RelativeToolTip": "Controllers\\DonViPhatHanhController.cs",
               "ViewState": "AgIAAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-09T07:35:43.512Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-09T07:35:43.512Z"
             },
             {
               "$type": "Document",
@@ -117,8 +115,7 @@
               "RelativeToolTip": "Models\\DonViPhatHanh.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-05T17:51:30.063Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-05T17:51:30.063Z"
             }
           ]
         }

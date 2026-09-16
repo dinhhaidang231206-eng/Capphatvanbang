@@ -1,2 +1,0 @@
-wwwroot\css\site.css
-C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\wwwroot\css\site.css

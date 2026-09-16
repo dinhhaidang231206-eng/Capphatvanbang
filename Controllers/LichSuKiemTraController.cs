@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using HeThongVanBangSo.Data;
 
 namespace HeThongVanBangSo.Controllers
 {
+    [Authorize(Roles = "NhanVien,Admin")]
     public class LichSuKiemTraController : Controller
     {
         private readonly HeThongVanBangDbContext _context;

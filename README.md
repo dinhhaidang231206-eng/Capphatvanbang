@@ -83,7 +83,7 @@ Mở file `appsettings.json` và kiểm tra chuỗi kết nối phù hợp với
 1. Mở Visual Studio.
 2. Chọn **Open a project or solution** và trỏ đến file `HeThongVanBangSo.csproj`.
 3. Nhấn phím **F5** hoặc nút **Start Debugging**.
-4. Trình duyệt sẽ tự động mở giao diện tài liệu trực quan **Swagger UI** tại `http://localhost:5000` (hoặc cổng tương ứng).
+4. Trình duyệt sẽ tự động mở trang chủ tại `http://localhost:5000` (hoặc cổng tương ứng).
 
 ### Cách 2: Chạy bằng dòng lệnh (Terminal)
 ```bash

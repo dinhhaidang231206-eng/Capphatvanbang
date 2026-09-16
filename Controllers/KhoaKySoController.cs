@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using HeThongVanBangSo.Data;
 using HeThongVanBangSo.Models;
@@ -6,6 +7,7 @@ using HeThongVanBangSo.Services;
 
 namespace HeThongVanBangSo.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class KhoaKySoController : Controller
     {
         private readonly HeThongVanBangDbContext _context;

@@ -1,0 +1,15 @@
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\bin\Debug\net10.0\GenKeys.exe
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\bin\Debug\net10.0\GenKeys.deps.json
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\bin\Debug\net10.0\GenKeys.runtimeconfig.json
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\bin\Debug\net10.0\GenKeys.dll
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\bin\Debug\net10.0\GenKeys.pdb
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\obj\Debug\net10.0\GenKeys.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\obj\Debug\net10.0\GenKeys.AssemblyInfoInputs.cache
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\obj\Debug\net10.0\GenKeys.AssemblyInfo.cs
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\obj\Debug\net10.0\GenKeys.csproj.CoreCompileInputs.cache
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\obj\Debug\net10.0\GenKeys.sourcelink.json
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\obj\Debug\net10.0\GenKeys.dll
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\obj\Debug\net10.0\refint\GenKeys.dll
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\obj\Debug\net10.0\GenKeys.pdb
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\obj\Debug\net10.0\GenKeys.genruntimeconfig.cache
+C:\Users\FPTShop\OneDrive\File học\Làm bài\Cấp phát văn băng chứng chi sổ\GenKeys\obj\Debug\net10.0\ref\GenKeys.dll

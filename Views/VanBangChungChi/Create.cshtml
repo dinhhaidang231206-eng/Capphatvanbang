@@ -34,7 +34,7 @@
                             {
                                 foreach (var dv in danhSachDonVi)
                                 {
-                                    <option value="@dv.MaDonVi">@dv.TenDonVi (@dv.MaCode)</option>
+                                    <option value="@dv.MaDonVi" selected="@(ViewBag.SelectedMaDonVi == dv.MaDonVi)">@dv.TenDonVi (@dv.MaCode)</option>
                                 }
                             }
                         </select>
@@ -48,7 +48,7 @@
                             {
                                 foreach (var nn in danhSachNguoiNhan)
                                 {
-                                    <option value="@nn.MaNguoiNhan">@nn.HoTen (CCCD: @nn.SoCCCD)</option>
+                                    <option value="@nn.MaNguoiNhan" selected="@(ViewBag.SelectedMaNguoiNhan == nn.MaNguoiNhan)">@nn.HoTen (CCCD: @nn.SoCCCD)</option>
                                 }
                             }
                         </select>
@@ -57,7 +57,14 @@
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Tên Văn Bằng / Chứng Chỉ <span class="text-danger">*</span></label>
-                    <input type="text" name="tenVanBang" class="form-control" required placeholder="VD: Bằng Kỹ sư Công nghệ Thông tin" />
+                    <select name="tenVanBang" id="tenVanBangSelect" class="form-select" required>
+                        <option value="">-- Chọn tên văn bằng từ yêu cầu --</option>
+                        @if (!string.IsNullOrEmpty(ViewBag.SelectedTenVanBang))
+                        {
+                            <option value="@ViewBag.SelectedTenVanBang" selected>@ViewBag.SelectedTenVanBang</option>
+                        }
+                    </select>
+                    <small class="text-muted">Danh sách văn bằng hiển thị dựa trên Người Nhận được chọn.</small>
                 </div>
 
                 <div class="row">
@@ -87,3 +94,54 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var nguoiNhanSelect = document.querySelector('select[name="maNguoiNhan"]');
+            var tenVanBangSelect = document.getElementById('tenVanBangSelect');
+            
+            var danhSachNguoiNhan = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.DanhSachNguoiNhan));
+            var danhSachYeuCau = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.DanhSachYeuCau));
+            var selectedTenVanBang = '@(ViewBag.SelectedTenVanBang ?? "")';
+
+            function updateTenVanBangDropdown() {
+                var selectedMa = nguoiNhanSelect.value;
+                tenVanBangSelect.innerHTML = '<option value="">-- Chọn tên văn bằng từ yêu cầu --</option>';
+                
+                if (selectedMa) {
+                    var nguoiNhan = danhSachNguoiNhan.find(n => n.MaNguoiNhan == selectedMa);
+                    if (nguoiNhan) {
+                        var yeuCaus = danhSachYeuCau.filter(y => y.SoCCCD === nguoiNhan.SoCCCD);
+                        var uniqueNames = [...new Set(yeuCaus.map(y => y.TenVanBang))];
+                        
+                        uniqueNames.forEach(name => {
+                            var option = document.createElement('option');
+                            option.value = name;
+                            option.textContent = name;
+                            if (name === selectedTenVanBang) {
+                                option.selected = true;
+                            }
+                            tenVanBangSelect.appendChild(option);
+                        });
+                        
+                        if (uniqueNames.length === 0) {
+                            var emptyOption = document.createElement('option');
+                            emptyOption.value = "";
+                            emptyOption.textContent = "Không có yêu cầu nào đã duyệt";
+                            emptyOption.disabled = true;
+                            tenVanBangSelect.appendChild(emptyOption);
+                        }
+                    }
+                }
+            }
+
+            nguoiNhanSelect.addEventListener('change', updateTenVanBangDropdown);
+            
+            // Khởi tạo ban đầu
+            if (nguoiNhanSelect.value) {
+                updateTenVanBangDropdown();
+            }
+        });
+    </script>
+}

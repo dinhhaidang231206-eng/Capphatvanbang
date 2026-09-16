@@ -41,26 +41,37 @@
                         <tr>
                             <th class="text-muted">Trạng Thái:</th>
                             <td>
-                                @if (Model.TrangThai == "HOP_LE")
+                                @if (Model.TrangThaiDuyet == HeThongVanBangSo.Models.TrangThaiPhanLuong.DuThao)
                                 {
-                                    <span class="badge bg-success fs-6">Hợp lệ</span>
+                                    <span class="badge bg-warning text-dark fs-6">Dự thảo</span>
                                 }
-                                else if (Model.TrangThai == "THU_HOI")
+                                else if (Model.TrangThaiDuyet == HeThongVanBangSo.Models.TrangThaiPhanLuong.DaBanHanh)
                                 {
-                                    <span class="badge bg-danger fs-6">Đã thu hồi</span>
+                                    if (Model.TrangThai == "HOP_LE")
+                                    {
+                                        <span class="badge bg-success fs-6">Đã ban hành (Hợp lệ)</span>
+                                    }
+                                    else if (Model.TrangThai == "THU_HOI" || Model.TrangThaiDuyet == HeThongVanBangSo.Models.TrangThaiPhanLuong.ThuHoi)
+                                    {
+                                        <span class="badge bg-danger fs-6">Đã thu hồi</span>
+                                    }
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary fs-6">@Model.TrangThai</span>
+                                    <span class="badge bg-secondary fs-6">@Model.TrangThaiDuyet.ToString()</span>
                                 }
                             </td>
                         </tr>
                         <tr>
                             <th class="text-muted">File Đã Ký:</th>
                             <td>
-                                @if (!string.IsNullOrEmpty(Model.DuongDanFileDaKy))
+                                @if (Model.TrangThaiDuyet == HeThongVanBangSo.Models.TrangThaiPhanLuong.DuThao)
                                 {
-                                    <a href="@Model.DuongDanFileDaKy" target="_blank" class="btn btn-sm btn-outline-info">Tải xuống / Xem File</a>
+                                    <a href="@Model.FilePath_Draft" target="_blank" class="btn btn-sm btn-outline-secondary">Xem File Nháp</a>
+                                }
+                                else if (Model.TrangThaiDuyet == HeThongVanBangSo.Models.TrangThaiPhanLuong.DaBanHanh && !string.IsNullOrEmpty(Model.FilePath_Signed))
+                                {
+                                    <a href="@Model.FilePath_Signed" target="_blank" class="btn btn-sm btn-outline-success">Tải xuống / Xem File Đã Ký Nhúng</a>
                                 }
                                 else
                                 {
@@ -141,14 +152,14 @@
             </div>
 
             <!-- Thu hồi -->
-            @if (Model.TrangThai == "HOP_LE")
+            @if (Model.TrangThai == "HOP_LE" && Model.TrangThaiDuyet == HeThongVanBangSo.Models.TrangThaiPhanLuong.DaBanHanh)
             {
                 <div class="card shadow-sm border-danger">
                     <div class="card-header bg-danger text-white">
                         <h6 class="mb-0">Thu Hồi Văn Bằng</h6>
                     </div>
                     <div class="card-body">
-                        <form asp-action="ThuHoi" asp-route-id="@Model.MaVanBang" method="post">
+                        <form action="/VanBangChungChi/ThuHoi/@Model.MaVanBang" method="post">
                             @Html.AntiForgeryToken()
                             <div class="mb-2">
                                 <input type="text" name="lyDo" class="form-control form-control-sm" placeholder="Lý do thu hồi (tùy chọn)" />

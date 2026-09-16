@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using HeThongVanBangSo.Data;
 using HeThongVanBangSo.Models;
@@ -19,12 +20,14 @@ namespace HeThongVanBangSo.Controllers
             _signatureService = signatureService;
         }
 
+        [AllowAnonymous]
         public IActionResult Index()
         {
             return View();
         }
 
         // GET: /Home/TraCuu
+        [AllowAnonymous]
         public IActionResult TraCuu()
         {
             return View();
@@ -33,6 +36,7 @@ namespace HeThongVanBangSo.Controllers
         // POST: /Home/TraCuu — Kiểm tra qua file upload
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<IActionResult> TraCuuByFile(IFormFile fileVanBang)
         {
             if (fileVanBang == null || fileVanBang.Length == 0)
@@ -55,6 +59,13 @@ namespace HeThongVanBangSo.Controllers
                 fileBytes = ms.ToArray();
             }
 
+            // Lưu tạm để iText7 xác thực
+            string tempFilePath = Path.GetTempFileName();
+            await System.IO.File.WriteAllBytesAsync(tempFilePath, fileBytes);
+            
+            var verifyResult = _signatureService.VerifyPdfSignature(tempFilePath);
+            System.IO.File.Delete(tempFilePath);
+
             string maBamFile = _signatureService.ComputeSha256Hash(fileBytes);
             string tenFile = Path.GetFileName(fileVanBang.FileName);
             string? ipClient = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -72,33 +83,40 @@ namespace HeThongVanBangSo.Controllers
 
             if (vanBang != null)
             {
-                if (vanBang.TrangThai == "THU_HOI")
+                if (vanBang.TrangThai == "THU_HOI" || vanBang.TrangThaiDuyet == TrangThaiPhanLuong.ThuHoi)
                 {
                     ghiChu = "CẢNH BÁO: Văn bằng này đã bị đơn vị cấp thu hồi hoặc hủy bỏ hiệu lực.";
                 }
+                else if (vanBang.TrangThaiDuyet != TrangThaiPhanLuong.DaBanHanh)
+                {
+                    ghiChu = "CẢNH BÁO: Văn bằng này chưa được ban hành chính thức.";
+                }
                 else
                 {
-                    // Xác thực chữ ký số
-                    if (vanBang.KhoaKySo != null && !string.IsNullOrEmpty(vanBang.KhoaKySo.PublicKeyText))
-                    {
-                        chuKySoHopLe = _signatureService.VerifySignature(
-                            fileBytes, vanBang.ChuKySo, vanBang.KhoaKySo.PublicKeyText);
-                    }
+                    // Xác thực chữ ký số nhúng
+                    chuKySoHopLe = verifyResult.IsValid;
 
                     if (chuKySoHopLe)
                     {
                         ketQuaHopLe = true;
-                        ghiChu = "CHÍNH XÁC: Văn bằng hợp lệ, toàn vẹn dữ liệu và chữ ký số chính chủ.";
+                        ghiChu = "CHÍNH XÁC: Văn bằng hợp lệ, toàn vẹn dữ liệu và có chữ ký số. Người ký: " + verifyResult.SignerName;
                     }
                     else
                     {
-                        ghiChu = "CẢNH BÁO: Mã băm trùng khớp nhưng chữ ký số không hợp lệ hoặc đã bị can thiệp.";
+                        ghiChu = "CẢNH BÁO: " + verifyResult.Message;
                     }
                 }
             }
             else
             {
-                ghiChu = "CẢNH BÁO: Tệp tin không tồn tại trong hệ thống hoặc nội dung đã bị chỉnh sửa, làm giả.";
+                if (!verifyResult.IsValid)
+                {
+                    ghiChu = "CẢNH BÁO: Tệp tin không có chữ ký số hợp lệ hoặc đã bị sửa đổi. " + verifyResult.Message;
+                }
+                else
+                {
+                    ghiChu = "CẢNH BÁO: Tệp tin có chữ ký nhưng không tồn tại trong hệ thống (mã băm không khớp).";
+                }
             }
 
             // Lưu lịch sử
@@ -126,73 +144,41 @@ namespace HeThongVanBangSo.Controllers
             return View(nameof(TraCuu));
         }
 
-        // POST: /Home/TraCuuByHash — Kiểm tra qua chuỗi hash SHA-256
+        // POST: /Home/TraCuuByThongTin — Kiểm tra qua thông tin cá nhân
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> TraCuuByHash(string maBamSHA256)
+        [AllowAnonymous]
+        public async Task<IActionResult> TraCuuByThongTin(string hoTen, string soCCCD, DateTime ngaySinh)
         {
-            if (string.IsNullOrWhiteSpace(maBamSHA256))
+            if (string.IsNullOrWhiteSpace(hoTen) || string.IsNullOrWhiteSpace(soCCCD))
             {
-                TempData["ErrorMessage"] = "Vui lòng nhập mã băm SHA-256 để tra cứu.";
+                TempData["ErrorMessage"] = "Vui lòng nhập đủ Họ Tên, CCCD và Ngày sinh.";
                 return RedirectToAction(nameof(TraCuu));
             }
 
-            string maBam = maBamSHA256.Trim().ToLowerInvariant();
-
-            // Validate hash format (64 hex chars)
-            if (maBam.Length != 64 || !System.Text.RegularExpressions.Regex.IsMatch(maBam, "^[0-9a-f]{64}$"))
-            {
-                TempData["ErrorMessage"] = "Mã băm SHA-256 phải có đúng 64 ký tự hex (0-9, a-f).";
-                return RedirectToAction(nameof(TraCuu));
-            }
-
-            string? ipClient = HttpContext.Connection.RemoteIpAddress?.ToString();
-
-            var vanBang = await _context.VanBangChungChis
+            var danhSachVanBang = await _context.VanBangChungChis
                 .Include(v => v.DonViPhatHanh)
                 .Include(v => v.NguoiNhan)
-                .FirstOrDefaultAsync(v => v.MaBamSHA256 == maBam);
+                .Where(v => v.NguoiNhan.SoCCCD == soCCCD.Trim() && 
+                            v.NguoiNhan.NgaySinh.Date == ngaySinh.Date && 
+                            v.NguoiNhan.HoTen.Contains(hoTen.Trim()))
+                .ToListAsync();
 
-            bool ketQuaHopLe = false;
-            string ghiChu;
-
-            if (vanBang != null)
+            if (danhSachVanBang == null || !danhSachVanBang.Any())
             {
-                if (vanBang.TrangThai == "THU_HOI")
-                {
-                    ghiChu = "CẢNH BÁO: Văn bằng đã bị cơ quan cấp bằng thu hồi.";
-                }
-                else
-                {
-                    ketQuaHopLe = true;
-                    ghiChu = "HỢP LỆ: Tìm thấy văn bằng trùng khớp với mã băm trong hệ thống.";
-                }
+                ViewBag.KetQuaHopLe = false;
+                ViewBag.GhiChu = "Không tìm thấy văn bằng nào khớp với thông tin cá nhân.";
+                ViewBag.DanhSachVanBang = null;
             }
             else
             {
-                ghiChu = "KHÔNG TÌM THẤY: Mã băm không tồn tại trên hệ thống.";
+                ViewBag.KetQuaHopLe = true;
+                ViewBag.GhiChu = $"Tìm thấy {danhSachVanBang.Count} văn bằng khớp với thông tin.";
+                ViewBag.DanhSachVanBang = danhSachVanBang;
             }
 
-            // Lưu lịch sử
-            var lichSu = new LichSuKiemTra
-            {
-                TenFileTaiLen = "TraCuuTheoHash",
-                MaBamFileTaiLen = maBam,
-                KetQuaHopLe = ketQuaHopLe,
-                GhiChu = ghiChu,
-                IPNguoiKiemTra = ipClient,
-                ThoiGianKiemTra = DateTime.UtcNow
-            };
-            _context.LichSuKiemTras.Add(lichSu);
-            await _context.SaveChangesAsync();
-
-            ViewBag.KetQuaHopLe = ketQuaHopLe;
-            ViewBag.ChuKySoHopLe = ketQuaHopLe;
-            ViewBag.GhiChu = ghiChu;
-            ViewBag.MaBamFile = maBam;
-            ViewBag.TenFile = "Tra cứu theo mã băm";
-            ViewBag.VanBang = vanBang;
             ViewBag.DaTraCuu = true;
+            ViewBag.TenFile = "Tra cứu bằng thông tin cá nhân";
 
             return View(nameof(TraCuu));
         }

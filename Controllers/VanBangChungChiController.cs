@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using HeThongVanBangSo.Data;
 using HeThongVanBangSo.Models;
@@ -6,6 +7,7 @@ using HeThongVanBangSo.Services;
 
 namespace HeThongVanBangSo.Controllers
 {
+    [Authorize(Roles = "NhanVien,Admin")]
     public class VanBangChungChiController : Controller
     {
         private readonly HeThongVanBangDbContext _context;
@@ -37,7 +39,7 @@ namespace HeThongVanBangSo.Controllers
         }
 
         // GET: /VanBangChungChi/Create
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(long? maNguoiNhan, string? tenVanBang, int? maDonVi)
         {
             ViewBag.DanhSachDonVi = await _context.DonViPhatHanhs
                 .Where(d => d.TrangThaiHoatDong)
@@ -47,6 +49,15 @@ namespace HeThongVanBangSo.Controllers
             ViewBag.DanhSachNguoiNhan = await _context.NguoiNhans
                 .OrderBy(n => n.HoTen)
                 .ToListAsync();
+
+            ViewBag.DanhSachYeuCau = await _context.YeuCauCapPhats
+                .Where(y => y.TrangThai == "DA_DUYET")
+                .Select(y => new { y.SoCCCD, y.TenVanBang })
+                .ToListAsync();
+
+            ViewBag.SelectedMaNguoiNhan = maNguoiNhan;
+            ViewBag.SelectedTenVanBang = tenVanBang;
+            ViewBag.SelectedMaDonVi = maDonVi;
 
             return View();
         }
@@ -65,6 +76,10 @@ namespace HeThongVanBangSo.Controllers
                     .ToListAsync();
                 ViewBag.DanhSachNguoiNhan = await _context.NguoiNhans
                     .OrderBy(n => n.HoTen)
+                    .ToListAsync();
+                ViewBag.DanhSachYeuCau = await _context.YeuCauCapPhats
+                    .Where(y => y.TrangThai == "DA_DUYET")
+                    .Select(y => new { y.SoCCCD, y.TenVanBang })
                     .ToListAsync();
             }
 
@@ -139,32 +154,24 @@ namespace HeThongVanBangSo.Controllers
                 return View();
             }
 
-            // 5. Đọc file
-            byte[] fileBytes;
-            using (var ms = new MemoryStream())
+            // 5. Lưu file vào Drafts
+            string draftsFolder = Path.Combine(_env.ContentRootPath, "Uploads", "Drafts");
+            if (!Directory.Exists(draftsFolder))
             {
-                await fileVanBang.CopyToAsync(ms);
-                fileBytes = ms.ToArray();
-            }
-
-            // 6. Tính mã băm SHA-256 và ký số RSA
-            string maBamSha256 = _signatureService.ComputeSha256Hash(fileBytes);
-            string chuKySo = _signatureService.SignData(fileBytes, khoaKy.PrivateKeyMaHoa);
-
-            // 7. Lưu file
-            string uploadsFolder = Path.Combine(_env.ContentRootPath, "Uploads", "Certificates");
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
+                Directory.CreateDirectory(draftsFolder);
             }
 
             string safeFileName = $"{soHieu.Trim()}_{Path.GetFileName(fileVanBang.FileName)}";
-            string filePath = Path.Combine(uploadsFolder, safeFileName);
-            await System.IO.File.WriteAllBytesAsync(filePath, fileBytes);
+            string draftFilePath = Path.Combine(draftsFolder, safeFileName);
+            
+            using (var stream = new FileStream(draftFilePath, FileMode.Create))
+            {
+                await fileVanBang.CopyToAsync(stream);
+            }
 
-            string duongDanLuuTru = $"/Uploads/Certificates/{safeFileName}";
+            string duongDanDraft = $"/Uploads/Drafts/{safeFileName}";
 
-            // 8. Lưu vào DB
+            // 6. Lưu vào DB (Trạng thái Dự thảo, chưa có chữ ký thực)
             var vanBang = new VanBangChungChi
             {
                 MaDonVi = maDonVi,
@@ -172,9 +179,11 @@ namespace HeThongVanBangSo.Controllers
                 MaKhoa = khoaKy.MaKhoa,
                 TenVanBang = tenVanBang.Trim(),
                 SoHieu = soHieu.Trim(),
-                DuongDanFileDaKy = duongDanLuuTru,
-                ChuKySo = chuKySo,
-                MaBamSHA256 = maBamSha256,
+                FilePath_Draft = duongDanDraft,
+                TrangThaiDuyet = TrangThaiPhanLuong.DuThao,
+                DuongDanFileDaKy = "", // Sẽ cập nhật khi duyệt
+                ChuKySo = "",
+                MaBamSHA256 = "0000000000000000000000000000000000000000000000000000000000000000",
                 NgayCap = ngayCap.Date,
                 TrangThai = "HOP_LE",
                 NgayTao = DateTime.UtcNow
@@ -183,8 +192,214 @@ namespace HeThongVanBangSo.Controllers
             _context.VanBangChungChis.Add(vanBang);
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = $"Đã cấp phát văn bằng '{vanBang.TenVanBang}' (Số hiệu: {vanBang.SoHieu}) thành công! Mã băm SHA-256: {maBamSha256}";
+            TempData["SuccessMessage"] = $"Đã tạo dự thảo văn bằng '{vanBang.TenVanBang}' (Số hiệu: {vanBang.SoHieu}) thành công! Vui lòng duyệt và ký số.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // POST: /VanBangChungChi/ApproveAndSign/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveAndSign(long id)
+        {
+            var vanBang = await _context.VanBangChungChis
+                .Include(v => v.KhoaKySo)
+                .Include(v => v.DonViPhatHanh)
+                .FirstOrDefaultAsync(v => v.MaVanBang == id);
+
+            if (vanBang == null) return NotFound();
+
+            if (vanBang.TrangThaiDuyet == TrangThaiPhanLuong.DaBanHanh)
+            {
+                TempData["ErrorMessage"] = "Văn bằng đã được ký và ban hành.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var khoaKy = vanBang.KhoaKySo;
+            if (khoaKy == null || !khoaKy.TrangThai || khoaKy.NgayHetHan <= DateTime.UtcNow)
+            {
+                TempData["ErrorMessage"] = "Khóa ký số không hợp lệ hoặc đã hết hạn.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            string draftsFolder = Path.Combine(_env.ContentRootPath, "Uploads", "Drafts");
+            string certsFolder = Path.Combine(_env.ContentRootPath, "Uploads", "Certificates");
+            if (!Directory.Exists(certsFolder)) Directory.CreateDirectory(certsFolder);
+
+            string draftFileName = Path.GetFileName(vanBang.FilePath_Draft);
+            string inputPdfPath = Path.Combine(draftsFolder, draftFileName);
+            string outputFileName = $"Signed_{draftFileName}";
+            string outputPdfPath = Path.Combine(certsFolder, outputFileName);
+
+            if (!System.IO.File.Exists(inputPdfPath))
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy file dự thảo để ký.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                // Sinh chứng thư X509 tự ký từ khóa PEM (Do database chỉ lưu PEM)
+                using var rsa = System.Security.Cryptography.RSA.Create();
+                rsa.ImportFromPem(khoaKy.PrivateKeyMaHoa);
+                var req = new System.Security.Cryptography.X509Certificates.CertificateRequest(
+                    new System.Security.Cryptography.X509Certificates.X500DistinguishedName($"CN={vanBang.DonViPhatHanh?.TenDonVi ?? "DonVi"}"), 
+                    rsa, 
+                    System.Security.Cryptography.HashAlgorithmName.SHA256, 
+                    System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+                
+                using var cert = req.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(5));
+
+                bool isSuccess = _signatureService.SignPdfFile(
+                    inputPdfPath, 
+                    outputPdfPath, 
+                    cert, 
+                    "Phê duyệt cấp phát văn bằng", 
+                    "Việt Nam");
+
+                if (isSuccess)
+                {
+                    vanBang.FilePath_Signed = $"/Uploads/Certificates/{outputFileName}";
+                    vanBang.DuongDanFileDaKy = vanBang.FilePath_Signed; // Cập nhật luôn cho tương thích cũ
+                    vanBang.TrangThaiDuyet = TrangThaiPhanLuong.DaBanHanh;
+                    
+                    // Tính lại SHA256 cho file đã ký nhúng
+                    byte[] signedBytes = await System.IO.File.ReadAllBytesAsync(outputPdfPath);
+                    vanBang.MaBamSHA256 = _signatureService.ComputeSha256Hash(signedBytes);
+                    vanBang.ChuKySo = _signatureService.SignData(signedBytes, khoaKy.PrivateKeyMaHoa);
+
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Đã phê duyệt và ký số nhúng thành công!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Lỗi trong quá trình nhúng chữ ký số (iText7).";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi hệ thống: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: /VanBangChungChi/ApprovalList
+        [Authorize(Roles = "Admin,Approver")]
+        public async Task<IActionResult> ApprovalList()
+        {
+            var vanBangs = await _context.VanBangChungChis
+                .Include(v => v.DonViPhatHanh)
+                .Include(v => v.NguoiNhan)
+                .Where(v => v.TrangThaiDuyet == TrangThaiPhanLuong.DuThao || v.TrangThaiDuyet == TrangThaiPhanLuong.ChoKyChinhThuc)
+                .OrderByDescending(v => v.NgayTao)
+                .ToListAsync();
+
+            return View(vanBangs);
+        }
+
+        // POST: /VanBangChungChi/BatchApproveAndSign
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Approver")]
+        public async Task<IActionResult> BatchApproveAndSign([FromBody] List<long> selectedIds)
+        {
+            if (selectedIds == null || !selectedIds.Any())
+            {
+                return Json(new { success = false, message = "Vui lòng chọn ít nhất một văn bằng để duyệt." });
+            }
+
+            int successCount = 0;
+            int errorCount = 0;
+
+            string draftsFolder = Path.Combine(_env.ContentRootPath, "Uploads", "Drafts");
+            string certsFolder = Path.Combine(_env.ContentRootPath, "Uploads", "Certificates");
+            if (!Directory.Exists(certsFolder)) Directory.CreateDirectory(certsFolder);
+
+            foreach (var id in selectedIds)
+            {
+                var vanBang = await _context.VanBangChungChis
+                    .Include(v => v.KhoaKySo)
+                    .Include(v => v.DonViPhatHanh)
+                    .Include(v => v.NguoiNhan)
+                    .FirstOrDefaultAsync(v => v.MaVanBang == id);
+
+                if (vanBang == null || vanBang.TrangThaiDuyet == TrangThaiPhanLuong.DaBanHanh)
+                {
+                    errorCount++;
+                    continue;
+                }
+
+                var khoaKy = vanBang.KhoaKySo;
+                if (khoaKy == null || !khoaKy.TrangThai || khoaKy.NgayHetHan <= DateTime.UtcNow)
+                {
+                    errorCount++;
+                    continue;
+                }
+
+                string draftFileName = Path.GetFileName(vanBang.FilePath_Draft);
+                string inputPdfPath = Path.Combine(draftsFolder, draftFileName);
+                string outputFileName = $"Signed_{Guid.NewGuid().ToString("N").Substring(0, 8)}_{draftFileName}";
+                string outputPdfPath = Path.Combine(certsFolder, outputFileName);
+
+                if (!System.IO.File.Exists(inputPdfPath))
+                {
+                    errorCount++;
+                    continue;
+                }
+
+                try
+                {
+                    using var rsa = System.Security.Cryptography.RSA.Create();
+                    rsa.ImportFromPem(khoaKy.PrivateKeyMaHoa);
+                    var req = new System.Security.Cryptography.X509Certificates.CertificateRequest(
+                        new System.Security.Cryptography.X509Certificates.X500DistinguishedName($"CN={vanBang.DonViPhatHanh?.TenDonVi ?? "DonVi"}"),
+                        rsa,
+                        System.Security.Cryptography.HashAlgorithmName.SHA256,
+                        System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+
+                    using var cert = req.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(5));
+
+                    bool isSuccess = _signatureService.SignPdfFile(
+                        inputPdfPath,
+                        outputPdfPath,
+                        cert,
+                        "Phê duyệt cấp phát văn bằng",
+                        "Việt Nam");
+
+                    if (isSuccess)
+                    {
+                        vanBang.FilePath_Signed = $"/Uploads/Certificates/{outputFileName}";
+                        vanBang.DuongDanFileDaKy = vanBang.FilePath_Signed;
+                        vanBang.TrangThaiDuyet = TrangThaiPhanLuong.DaBanHanh;
+
+                        // Tính lại SHA256 cho file đã ký nhúng
+                        byte[] signedBytes = await System.IO.File.ReadAllBytesAsync(outputPdfPath);
+                        vanBang.MaBamSHA256 = _signatureService.ComputeSha256Hash(signedBytes);
+
+                        // Tính ChuKySo logic cho metadata
+                        string dataToSign = $"{vanBang.MaVanBang}{vanBang.NguoiNhan?.HoTen}{vanBang.NguoiNhan?.SoCCCD}{vanBang.TenVanBang}{vanBang.NgayCap:yyyyMMdd}";
+                        byte[] dataBytes = System.Text.Encoding.UTF8.GetBytes(dataToSign);
+                        vanBang.ChuKySo = _signatureService.SignData(dataBytes, khoaKy.PrivateKeyMaHoa);
+
+                        successCount++;
+                    }
+                    else
+                    {
+                        errorCount++;
+                    }
+                }
+                catch (Exception)
+                {
+                    errorCount++;
+                }
+            }
+
+            if (successCount > 0)
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            return Json(new { success = true, message = $"Đã duyệt thành công {successCount} văn bằng. Lỗi: {errorCount}." });
         }
 
         // GET: /VanBangChungChi/Details/5
@@ -206,6 +421,7 @@ namespace HeThongVanBangSo.Controllers
         // POST: /VanBangChungChi/ThuHoi/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ThuHoi(long id, string? lyDo)
         {
             var vanBang = await _context.VanBangChungChis.FindAsync(id);
@@ -218,6 +434,7 @@ namespace HeThongVanBangSo.Controllers
             }
 
             vanBang.TrangThai = "THU_HOI";
+            vanBang.TrangThaiDuyet = TrangThaiPhanLuong.ThuHoi;
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = $"Văn bằng số hiệu '{vanBang.SoHieu}' đã bị thu hồi. Lý do: {lyDo ?? "Không nêu rõ"}";

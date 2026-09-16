@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Đăng ký tài khoản";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0">Đăng Ký Tài Khoản</h4>
+            </div>
+            <div class="card-body p-4">
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                }
+
+                <form method="post" asp-action="Register">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label for="hoTen" class="form-label fw-semibold">Họ và Tên</label>
+                        <input type="text" id="hoTen" name="hoTen" class="form-control" placeholder="Nguyễn Văn A" required autofocus />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold">Email</label>
+                        <input type="email" id="email" name="email" class="form-control" placeholder="email@example.com" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label fw-semibold">Mật khẩu</label>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Tối thiểu 6 ký tự, có chữ hoa + số" required />
+                        <div class="form-text">Mật khẩu phải chứa ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và chữ số.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label fw-semibold">Xác nhận mật khẩu</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-semibold">Đăng Ký</button>
+                </form>
+
+                <hr />
+                <p class="text-center text-muted mb-0">
+                    Đã có tài khoản? <a href="/Account/Login" class="fw-semibold">Đăng nhập</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

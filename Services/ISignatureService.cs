@@ -26,5 +26,20 @@ namespace HeThongVanBangSo.Services
         /// Xác thực chữ ký số bằng khóa công khai (Public Key)
         /// </summary>
         bool VerifySignature(byte[] data, string signatureBase64, string publicKeyXml);
+
+        /// <summary>
+        /// Ký số trực tiếp vào nội dung file PDF
+        /// </summary>
+        byte[] SignPdf(byte[] pdfBytes, string privateKeyPem);
+
+        /// <summary>
+        /// Ký số nhúng trực tiếp chứng thư số vào file PDF và lưu ra file mới
+        /// </summary>
+        bool SignPdfFile(string inputPdfPath, string outputPdfPath, System.Security.Cryptography.X509Certificates.X509Certificate2 certificate, string reason, string location);
+
+        /// <summary>
+        /// Đọc file PDF và kiểm tra chữ ký nhúng
+        /// </summary>
+        HeThongVanBangSo.Models.PdfSignatureVerificationResult VerifyPdfSignature(string pdfFilePath);
     }
 }

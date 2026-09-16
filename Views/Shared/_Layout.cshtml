@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -29,27 +29,100 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/">Trang chủ</a>
                         </li>
+                        
+                        @* Khách có thể tra cứu luôn *@
                         <li class="nav-item">
                             <a class="nav-link text-warning fw-semibold" href="/Home/TraCuu">Tra Cứu Văn Bằng</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/VanBangChungChi">Quản lý Văn Bằng</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/DonViPhatHanh">Đơn vị Phát Hành</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/NguoiNhan">Người Nhận</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/KhoaKySo">Khóa Ký Số</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/LichSuKiemTra">Lịch Sử Kiểm Tra</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/swagger">API Docs</a>
-                        </li>
+
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            @* SinhVien / ChuVanBang *@
+                            @if (User.IsInRole("ChuVanBang"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-success fw-semibold" href="/YeuCauCapPhat">Xin Cấp Phát</a>
+                                </li>
+                            }
+
+                            @* Quản lý VB: NhanVien + Admin *@
+                            @if (User.IsInRole("NhanVien") || User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-info fw-semibold" href="/YeuCauCapPhat/QuanLy">Duyệt Cấp Phát</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/VanBangChungChi">Quản lý Văn Bằng</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/NguoiNhan">Người Nhận</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/LichSuKiemTra">Lịch Sử Kiểm Tra</a>
+                                </li>
+                            }
+
+                            @* Admin only *@
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/DonViPhatHanh">Đơn vị Phát Hành</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/KhoaKySo">Khóa Ký Số</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-info" href="/QuanLyNguoiDung">Quản Lý Tài Khoản</a>
+                                </li>
+                            }
+                        }
+                    </ul>
+
+                    @* Phần Login/User ở góc phải *@
+                    <ul class="navbar-nav">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            var currentUser = await UserManager.GetUserAsync(User);
+                            var userRoles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+                            string roleBadge = userRoles.FirstOrDefault() ?? "";
+
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    👤 @(currentUser?.HoTen ?? User.Identity?.Name)
+                                    @if (roleBadge == "Admin")
+                                    {
+                                        <span class="badge bg-danger ms-1">Admin</span>
+                                    }
+                                    else if (roleBadge == "NhanVien")
+                                    {
+                                        <span class="badge bg-primary ms-1">NV</span>
+                                    }
+                                    else if (roleBadge == "ChuVanBang")
+                                    {
+                                        <span class="badge bg-success ms-1">Chủ VB</span>
+                                    }
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><span class="dropdown-item-text text-muted">@currentUser?.Email</span></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <form method="post" action="/Account/Logout">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger">Đăng Xuất</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" href="/Account/Login">Đăng Nhập</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-outline-light btn-sm ms-2 px-3" href="/Account/Register">Đăng Ký</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -61,6 +134,13 @@
             {
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             }

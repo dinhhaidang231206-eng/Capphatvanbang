@@ -23,6 +23,18 @@ build_property._RazorSourceGeneratorDebug =
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
+[C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/Account/AccessDenied.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxBY2Nlc3NEZW5pZWQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/Account/Login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/Account/Register.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/DonViPhatHanh/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9uVmlQaGF0SGFuaFxDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -67,8 +79,24 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTmd1b2lOaGFuXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/QuanLyNguoiDung/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVhbkx5Tmd1b2lEdW5nXENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/QuanLyNguoiDung/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVhbkx5Tmd1b2lEdW5nXEVkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/QuanLyNguoiDung/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVhbkx5Tmd1b2lEdW5nXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/VanBangChungChi/ApprovalList.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVmFuQmFuZ0NodW5nQ2hpXEFwcHJvdmFsTGlzdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/VanBangChungChi/Create.cshtml]
@@ -81,6 +109,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/VanBangChungChi/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVmFuQmFuZ0NodW5nQ2hpXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/YeuCauCapPhat/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcWWV1Q2F1Q2FwUGhhdFxDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/YeuCauCapPhat/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcWWV1Q2F1Q2FwUGhhdFxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/YeuCauCapPhat/QuanLy.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcWWV1Q2F1Q2FwUGhhdFxRdWFuTHkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/FPTShop/OneDrive/File học/Làm bài/Cấp phát văn băng chứng chi sổ/Views/_ViewImports.cshtml]

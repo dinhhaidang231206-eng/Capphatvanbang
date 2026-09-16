@@ -1,0 +1,80 @@
+@{
+    ViewData["Title"] = "Gửi Yêu Cầu Cấp Phát Mới";
+    var donViList = ViewBag.DanhSachDonVi as List<HeThongVanBangSo.Models.DonViPhatHanh>;
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-7">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-primary">Gửi Yêu Cầu Cấp Phát Văn Bằng</h3>
+            <a href="/YeuCauCapPhat" class="btn btn-outline-secondary btn-sm">← Quay lại lịch sử</a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Điền thông tin yêu cầu</h5>
+            </div>
+            <div class="card-body p-4">
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                }
+
+                <form method="post" asp-action="Create">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label for="maDonVi" class="form-label fw-semibold">Đơn vị phát hành tiếp nhận <span class="text-danger">*</span></label>
+                        <select id="maDonVi" name="maDonVi" class="form-select" required>
+                            <option value="">— Chọn đơn vị —</option>
+                            @if (donViList != null)
+                            {
+                                foreach (var dv in donViList)
+                                {
+                                    <option value="@dv.MaDonVi">@dv.TenDonVi (@dv.MaCode)</option>
+                                }
+                            }
+                        </select>
+                        <div class="form-text">Chọn trường hoặc tổ chức mà bạn muốn xin cấp phát văn bằng.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tenVanBang" class="form-label fw-semibold">Tên Văn Bằng / Chứng Chỉ <span class="text-danger">*</span></label>
+                        <input type="text" id="tenVanBang" name="tenVanBang" class="form-control" placeholder="VD: Bằng Cử Nhân CNTT, Chứng chỉ Toeic..." required />
+                    </div>
+
+                    <hr class="my-4" />
+                    <h6 class="text-muted mb-3">THÔNG TIN NGƯỜI ĐƯỢC CẤP:</h6>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="hoTen" class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>
+                            <input type="text" id="hoTen" name="hoTen" class="form-control" value="@User.Identity?.Name" required />
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="email" class="form-label fw-semibold">Email nhận thông báo <span class="text-danger">*</span></label>
+                            <input type="email" id="email" name="email" class="form-control" placeholder="nguyenvana@gmail.com" required />
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="soCCCD" class="form-label fw-semibold">Số CCCD / CMND <span class="text-danger">*</span></label>
+                            <input type="text" id="soCCCD" name="soCCCD" class="form-control" required />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="ngaySinh" class="form-label fw-semibold">Ngày Sinh <span class="text-danger">*</span></label>
+                            <input type="date" id="ngaySinh" name="ngaySinh" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <small>💡 <strong>Lưu ý:</strong> Thông tin của bạn sẽ được Đơn vị phát hành kiểm tra. Việc cung cấp sai thông tin có thể dẫn đến việc yêu cầu bị từ chối.</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-semibold mt-2 py-2">Gửi Yêu Cầu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
