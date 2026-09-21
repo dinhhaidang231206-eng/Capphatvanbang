@@ -59,6 +59,9 @@ BEGIN
         MaBamSHA256 CHAR(64) NOT NULL,           
         NgayCap DATE NOT NULL,
         TrangThai VARCHAR(20) DEFAULT 'HOP_LE',  
+        TrangThaiDuyet INT DEFAULT 0,
+        FilePath_Draft NVARCHAR(500) NULL,
+        FilePath_Signed NVARCHAR(500) NULL,
         NgayTao DATETIME2 DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT FK_VanBang_DonVi FOREIGN KEY (MaDonVi) 
             REFERENCES DonViPhatHanh(MaDonVi) ON DELETE NO ACTION,
@@ -66,6 +69,26 @@ BEGIN
             REFERENCES NguoiNhan(MaNguoiNhan) ON DELETE NO ACTION,
         CONSTRAINT FK_VanBang_Khoa FOREIGN KEY (MaKhoa) 
             REFERENCES KhoaKySo(MaKhoa) ON DELETE NO ACTION
+    );
+END
+GO
+-- Bảng Yêu Cầu Cấp Phát
+IF OBJECT_ID('dbo.YeuCauCapPhat', 'U') IS NULL
+BEGIN
+    CREATE TABLE YeuCauCapPhat (
+        MaYeuCau BIGINT IDENTITY(1,1) PRIMARY KEY,
+        NguoiDungId NVARCHAR(450) NOT NULL,
+        MaDonVi INT NOT NULL,
+        TenVanBang NVARCHAR(255) NOT NULL,
+        HoTen NVARCHAR(150) NOT NULL,
+        Email VARCHAR(100) NOT NULL,
+        SoCCCD VARCHAR(20) NOT NULL,
+        NgaySinh DATE NOT NULL,
+        TrangThai VARCHAR(20) DEFAULT 'CHO_DUYET',
+        LyDoTuChoi NVARCHAR(500) NULL,
+        NgayYeuCau DATETIME2 DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT FK_YeuCau_DonVi FOREIGN KEY (MaDonVi) 
+            REFERENCES DonViPhatHanh(MaDonVi) ON DELETE NO ACTION
     );
 END
 GO
@@ -194,18 +217,18 @@ GO
 IF NOT EXISTS (SELECT 1 FROM VanBangChungChi WHERE SoHieu = 'BK-2026-IT001')
 BEGIN
     INSERT INTO VanBangChungChi 
-    (MaDonVi, MaNguoiNhan, MaKhoa, TenVanBang, SoHieu, DuongDanFileDaKy, ChuKySo, MaBamSHA256, NgayCap, TrangThai)
+    (MaDonVi, MaNguoiNhan, MaKhoa, TenVanBang, SoHieu, DuongDanFileDaKy, ChuKySo, MaBamSHA256, NgayCap, TrangThai, TrangThaiDuyet, FilePath_Signed)
     VALUES 
     (1, 1, 1, N'Bằng Kỹ sư Công nghệ Thông tin', 'BK-2026-IT001', 
      '/uploads/certificates/BK_2026_IT001_Signed.pdf', 
      'MEQCIQCc4f...DUMMY_DIGITAL_SIGNATURE_BASE64...iAIfNf3a8b4c2e1',
      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 
-     '2026-06-30', 'HOP_LE'),
+     '2026-06-30', 'HOP_LE', 3, '/uploads/certificates/BK_2026_IT001_Signed.pdf'),
     (1, 2, 1, N'Chứng chỉ Tiếng Anh B2 VSTEP', 'BK-2026-EN002', 
      '/uploads/certificates/BK_2026_EN002_Signed.pdf', 
      'MEQCIDd7a...DUMMY_DIGITAL_SIGNATURE_BASE64...wQIhAOm2b9c8d7e',
      '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
-     '2026-07-15', 'HOP_LE');
+     '2026-07-15', 'HOP_LE', 3, '/uploads/certificates/BK_2026_EN002_Signed.pdf');
 END
 GO
 IF NOT EXISTS (SELECT 1 FROM LichSuKiemTra WHERE MaBamFileTaiLen = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
